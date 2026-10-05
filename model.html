@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block title %}Model & evidence{% endblock %}
+{% block body %}{% if not m %}<div class="card">metrics.json not found. Run <code>python train.py</code>.</div>{% else %}
+{% set t = m.test %}{% set rk = m.ranking %}
+<div class="card"><h1>What was measured</h1>
+<div class="kpi"><div><b>{{ '%.1f' % (t.accuracy*100) }}%</b>test accuracy (always predicting the majority class: {{ '%.1f' % (t.majority_class_accuracy*100) }}%)</div>
+<div><b>{{ '%.2f' % t.f1_macro }}</b>macro-F1 (weighted F1 {{ '%.2f' % t.f1_weighted }})</div>
+<div><b>{{ '%.2f' % t.auc_high_or_critical }}</b>AUC for High/Critical decay (0.50 = chance)</div>
+<div><b>{{ '%.0f' % (rk['model: P(High or Critical)'].precision_at_k*100) }}%</b>of the model's top-{{ '%.0f' % (rk._meta.k_fraction*100) }}% audit list truly deteriorated (chance: {{ '%.0f' % (rk._meta.high_or_critical_base_rate*100) }}%)</div></div>
+<p class="muted">Data: {{ m.data.kind }}, {{ m.data.assets }} assets × {{ m.data.windows }} daily windows, {{ '{:,}'.format(m.data.events) }} events. Split: windows {{ m.split.train[0] }}-{{ m.split.train[1] }} train, {{ m.split.val[0] }}-{{ m.split.val[1] }} validation, {{ m.split.test[0] }}-{{ m.split.test[1] }} test, with {{ m.split.purged_windows }}+ window(s) purged at each boundary so no training label is computed from a later split's inputs. Horizon {{ m.horizon_windows }} day(s), chosen on validation. The disclosure's reported 80.95% accuracy is <b>not comparable</b>: {{ m.disclosure_comparison.note }}</p></div>
+
+<div class="card"><h2>What this does and does not show</h2><ul class="flat">{% for f in findings %}<li>{{ f }}</li>{% endfor %}</ul>
+<p class="muted">Because the data is simulated, all of this describes how predictable <i>this simulator</i> is; it is not evidence about real enterprises.</p></div>
+
+<div class="card"><h2>Per category (test)</h2><table><tr><th>Category</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr>
+{% for c,v in t.per_class.items() %}<tr><td>{{ c }}</td><td>{{ '%.2f' % v.precision }}</td><td>{{ '%.2f' % v.recall }}</td><td>{{ '%.2f' % v.f1 }}</td><td>{{ v.support }}</td></tr>{% endfor %}</table>
+<p class="muted">{{ '%.0f' % (t.adjacent_error_share*100) }}% of misclassifications are exactly one category away{% if t.adjacent_error_share < 0.5 %}; the disclosure reports that most errors fall between neighbouring categories, which is not the case here{% endif %}.</p></div>
+
+<div class="card"><h2>Baselines</h2><table><tr><th>Method</th><th>Accuracy</th><th>Macro-F1</th><th>AUC (High/Critical)</th></tr>
+<tr><td><b>Random Forest (this model)</b></td><td>{{ '%.3f' % t.accuracy }}</td><td>{{ '%.3f' % t.f1_macro }}</td><td>{{ '%.3f' % t.auc_high_or_critical }}</td></tr>
+{% for n,b in m.baselines.items() %}<tr><td>{{ n }}</td><td>{{ '%.3f' % b.accuracy if b.accuracy is defined else '-' }}</td><td>{{ '%.3f' % b.f1_macro if b.f1_macro is defined else '-' }}</td><td>{{ '%.3f' % b.auc_high_or_critical if b.auc_high_or_critical is defined else '-' }}</td></tr>{% endfor %}</table></div>
+
+<div class="card"><h2>Audit prioritisation effectiveness</h2><p class="muted">Each day, audit the top {{ rk._meta.k_per_window }} assets ({{ '%.0f' % (rk._meta.k_fraction*100) }}%). Precision = share of them that truly showed High or Critical decay over the next {{ m.horizon_windows }} day(s). Interval: 95% over test days.</p>
+<table><tr><th>Ranking method</th><th>Precision@k</th><th>95% interval</th><th>Recall@k</th><th>Decay captured</th></tr>
+{% for n,v in rk.items() if not n.startswith('_') %}<tr><td>{{ n }}</td><td>{{ '%.3f' % v.precision_at_k }}</td><td>{{ ('%.2f-%.2f' % (v.precision_at_k_ci95[0], v.precision_at_k_ci95[1])) if v.precision_at_k_ci95 else '-' }}</td><td>{{ '%.2f' % v.recall_at_k }}</td><td>{{ '%.2f' % v.decay_captured }}</td></tr>{% endfor %}</table>
+<p class="muted">False-priority rate (assets flagged Immediate/High whose trust did not decay materially): {{ ('%.0f%%' % (rk._meta.false_priority_rate_immediate_or_high*100)) if rk._meta.false_priority_rate_immediate_or_high is not none else '-' }} of {{ rk._meta.n_flagged }} flagged.</p></div>
+
+<div class="card"><h2>Do temporal and graph features help? (claims 2-3)</h2><table><tr><th>Feature set</th><th>Features</th><th>AUC</th><th>Macro-F1</th><th>Precision@k</th></tr>
+{% for n,v in m.ablation.items() %}<tr><td>{{ n }}</td><td>{{ v.n_features }}</td><td>{{ '%.3f' % v.auc_high_or_critical }}</td><td>{{ '%.3f' % v.f1_macro }}</td><td>{{ '%.3f' % v.precision_at_k }}</td></tr>{% endfor %}</table>
+{% set g = m.graph_signal_control %}<p class="muted">Graph features' AUC gain (temporal+graph vs temporal only) averaged over {{ g.with_relationship_signal.seeds }} simulated enterprises: <b>{{ '%+.3f' % g.with_relationship_signal.auc_gain.mean }}</b> (sd {{ '%.3f' % g.with_relationship_signal.auc_gain.sd }}) in a world where connected assets influence each other, versus <b>{{ '%+.3f' % g.control_no_relationship_signal.auc_gain.mean }}</b> (sd {{ '%.3f' % g.control_no_relationship_signal.auc_gain.sd }}) in a control world where they do not.</p></div>
+
+<div class="card"><h2>Robustness</h2><table><tr><th>Check</th><th>Macro-F1</th><th>AUC</th></tr>
+<tr><td>Rolling-origin CV, {{ m.rolling_origin_cv.folds|length }} folds (mean ± sd)</td><td>{{ '%.3f' % m.rolling_origin_cv.mean_f1_macro }} ± {{ '%.3f' % m.rolling_origin_cv.sd_f1_macro }}</td><td>{{ '%.3f' % m.rolling_origin_cv.mean_auc_high_or_critical }} ± {{ '%.3f' % m.rolling_origin_cv.sd_auc_high_or_critical }}</td></tr>
+<tr><td>Test on assets seen in training</td><td>{{ '%.3f' % m.new_asset_holdout.seen_assets.f1_macro }}</td><td>{{ '%.3f' % m.new_asset_holdout.seen_assets.auc_high_or_critical }}</td></tr>
+<tr><td>Test on {{ m.new_asset_holdout.n_unseen_assets }} assets never seen in training</td><td>{{ '%.3f' % m.new_asset_holdout.unseen_assets.f1_macro }}</td><td>{{ '%.3f' % m.new_asset_holdout.unseen_assets.auc_high_or_critical }}</td></tr></table></div>
+
+<div class="card"><h2>Prediction horizon sweep</h2><p class="muted">{{ m.horizon_sweep.criterion }}. Longer horizons are easier to rank but change what "decay" means (it then includes recoveries).</p><table><tr><th>Horizon (days)</th><th>Val macro-F1</th><th>Val AUC</th><th>Test macro-F1 (info)</th><th>Test AUC (info)</th></tr>
+{% for r in m.horizon_sweep.rows %}<tr><td>{{ r.horizon }}{{ ' ← chosen' if r.horizon == m.horizon_sweep.chosen }}</td><td>{{ '%.3f' % r.val_f1_macro }}</td><td>{{ '%.3f' % r.val_auc_high }}</td><td>{{ '%.3f' % r.test_f1_macro_informational }}</td><td>{{ '%.3f' % r.test_auc_high_informational }}</td></tr>{% endfor %}</table></div>
+
+<div class="card"><h2>Figures (disclosure figures 12-15 and extras)</h2><div class="figs">{% for f,tt in figures.items() %}<figure style="margin:0"><img src="/figures/{{f}}" alt="{{tt}}" loading="lazy"></figure>{% endfor %}</div></div>
+{% endif %}{% endblock %}

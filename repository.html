@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Repository{% endblock %}
+{% block body %}
+<div class="card"><h1>Logging and Historical Repository</h1><p class="muted">Every logged assessment stores the feature vectors it used, each prediction with its factors and priority, and the hash of the graph snapshot it was computed from, so a past decision can be re-checked against the exact evidence. Use <b>Run &amp; log</b> on the dashboard to add a run.</p><div id="counts" class="kpi"></div></div>
+<div class="card"><h2>Assessment runs</h2><div id="runs" class="muted">Loading…</div></div>
+<div class="card"><h2>Predicted vs observed</h2><div id="rec" class="muted">Loading…</div></div>
+<div class="card"><h2>Graph snapshots</h2><div id="snaps" class="muted">Loading…</div></div>
+{% endblock %}
+{% block script %}<script>
+(async () => {
+  const [c, runs, rec, snaps] = await Promise.all([api('/api/repository/counts'), api('/api/repository/runs?limit=20'), api('/api/reconcile'), api('/api/repository/snapshots?limit=10')]);
+  $('counts').innerHTML = Object.entries(c).map(([k, v]) => `<div><b>${v.toLocaleString()}</b>${esc(k)}</div>`).join('');
+  $('runs').innerHTML = runs.length ? '<table><tr><th>Run</th><th>Window</th><th>Horizon</th><th>Model</th><th>Graph snapshot</th><th>Assets</th><th>Created</th></tr>' + runs.map(r => `<tr><td>#${r.id}</td><td>${T(r.window)}</td><td>${r.horizon}</td><td>${esc(r.model_version)}</td><td><code>${esc(r.graph_sha)}</code></td><td>${r.n_assets}</td><td>${esc(r.created_at)}</td></tr>`).join('') + '</table>' : 'No runs logged yet.';
+  $('rec').innerHTML = `<p class="muted">${esc(rec.note)}</p><table><tr><th>Period</th><th>Predictions compared</th><th>Future-trust error (MAE, pts)</th><th>Category accuracy</th></tr>` + Object.entries(rec.by_split).map(([k, v]) => `<tr><td>${badge(k, k)}</td><td>${v.n}</td><td>${v.future_ts_mae}</td><td>${(v.category_accuracy * 100).toFixed(1)}%</td></tr>`).join('') + '</table>';
+  $('snaps').innerHTML = snaps.length ? '<table><tr><th>Window</th><th>Nodes</th><th>Event edges</th><th>Structural</th><th>SHA-256 (prefix)</th><th>Taken</th></tr>' + snaps.map(s => `<tr><td>${T(s.window)}</td><td>${s.nodes}</td><td>${s.event_edges}</td><td>${s.structural_edges}</td><td><code>${esc(s.sha256)}</code></td><td>${esc(s.taken_at)}</td></tr>`).join('') + '</table>' : 'No snapshots yet.';
+})();
+</script>{% endblock %}

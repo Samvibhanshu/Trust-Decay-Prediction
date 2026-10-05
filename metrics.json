@@ -1,0 +1,426 @@
+{
+  "version": "v1-20260928120840",
+  "trained_at": "2026-09-28T12:08:40Z",
+  "horizon_windows": 5,
+  "window_hours": 24,
+  "data": {
+    "kind": "SIMULATED enterprise audit environment",
+    "assets": 48,
+    "windows": 64,
+    "events": 19250,
+    "labelled_rows": 2832,
+    "class_mix": {
+      "Low": 0.5557909604519774,
+      "Moderate": 0.1451271186440678,
+      "High": 0.1486581920903955,
+      "Critical": 0.1504237288135593
+    },
+    "sim_config": {
+      "n_assets": 48,
+      "n_users": 30,
+      "n_admins": 4,
+      "n_windows": 64,
+      "seed": 7,
+      "contagion": 0.6,
+      "episode_start_p": 0.05,
+      "episode_len": [
+        3,
+        9
+      ]
+    }
+  },
+  "split": {
+    "train": [
+      0,
+      29
+    ],
+    "val": [
+      35,
+      41
+    ],
+    "test": [
+      47,
+      58
+    ],
+    "purged_windows": 5,
+    "train_rows": 1440,
+    "val_rows": 336,
+    "test_rows": 576,
+    "note": "chronological by window; deployed model is fitted on train+val only"
+  },
+  "horizon_sweep": {
+    "rows": [
+      {
+        "horizon": 1,
+        "val_f1_macro": 0.21927568581780538,
+        "val_auc_high": 0.6329436398534286,
+        "test_f1_macro_informational": 0.22489502863420097,
+        "test_auc_high_informational": 0.6120644938186219,
+        "high_or_critical_rate_val": 0.0954861111111111
+      },
+      {
+        "horizon": 2,
+        "val_f1_macro": 0.22821140697047826,
+        "val_auc_high": 0.5941127694859039,
+        "test_f1_macro_informational": 0.24142535818854519,
+        "test_auc_high_informational": 0.6312426591496358,
+        "high_or_critical_rate_val": 0.1625
+      },
+      {
+        "horizon": 3,
+        "val_f1_macro": 0.27499999999999997,
+        "val_auc_high": 0.6136363636363636,
+        "test_f1_macro_informational": 0.24927480071657002,
+        "test_auc_high_informational": 0.6757391544625586,
+        "high_or_critical_rate_val": 0.2037037037037037
+      },
+      {
+        "horizon": 5,
+        "val_f1_macro": 0.3049586433382414,
+        "val_auc_high": 0.7261860465116279,
+        "test_f1_macro_informational": 0.2715284911103583,
+        "test_auc_high_informational": 0.687599431818182,
+        "high_or_critical_rate_val": 0.25595238095238093
+      },
+      {
+        "horizon": 7,
+        "val_f1_macro": 0.26910282451469314,
+        "val_auc_high": 0.7289450631960956,
+        "test_f1_macro_informational": 0.27612567383550785,
+        "test_auc_high_informational": 0.6915001555756977,
+        "high_or_critical_rate_val": 0.3177083333333333
+      }
+    ],
+    "chosen": 5,
+    "criterion": "validation macro-F1 (test columns are informational, not used)"
+  },
+  "chosen_params": {
+    "n_estimators": 400,
+    "min_samples_leaf": 6,
+    "class_weight": "balanced_subsample"
+  },
+  "validation_f1_macro": 0.31914004831693243,
+  "test": {
+    "n": 576,
+    "accuracy": 0.4774305555555556,
+    "balanced_accuracy": 0.30898234197453417,
+    "precision_weighted": 0.4148436767051317,
+    "recall_weighted": 0.4774305555555556,
+    "f1_weighted": 0.43621511553852443,
+    "f1_macro": 0.29024276142804784,
+    "auc_high_or_critical": 0.6815340909090909,
+    "per_class": {
+      "Low": {
+        "precision": 0.6283422459893048,
+        "recall": 0.7755775577557755,
+        "f1": 0.6942392909896603,
+        "support": 303
+      },
+      "Moderate": {
+        "precision": 0.13636363636363635,
+        "recall": 0.030927835051546393,
+        "f1": 0.05042016806722689,
+        "support": 97
+      },
+      "High": {
+        "precision": 0.16470588235294117,
+        "recall": 0.14893617021276595,
+        "f1": 0.1564245810055866,
+        "support": 94
+      },
+      "Critical": {
+        "precision": 0.24210526315789474,
+        "recall": 0.2804878048780488,
+        "f1": 0.2598870056497175,
+        "support": 82
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        5,
+        34,
+        29
+      ],
+      [
+        54,
+        3,
+        19,
+        21
+      ],
+      [
+        52,
+        6,
+        14,
+        22
+      ],
+      [
+        33,
+        8,
+        18,
+        23
+      ]
+    ],
+    "adjacent_error_share": 0.4119601328903654,
+    "majority_class_accuracy": 0.5260416666666666,
+    "regression": {
+      "future_ts_mae": 16.620785905149432,
+      "future_ts_r2": 0.17062742211467596,
+      "persistence_mae": 18.467708333333334,
+      "persistence_r2": -0.15292527065306927,
+      "decay_mae_model": 10.925123929654736,
+      "decay_mae_predict_zero": 11.824826388888889
+    }
+  },
+  "baselines": {
+    "majority_class": {
+      "accuracy": 0.5260416666666666,
+      "f1_macro": 0.17235494880546076,
+      "auc_high_or_critical": 0.5
+    },
+    "persistence (no decay predicted)": {
+      "accuracy": 0.5260416666666666,
+      "f1_macro": 0.17235494880546076,
+      "auc_high_or_critical": 0.5
+    },
+    "logistic_regression": {
+      "accuracy": 0.3628472222222222,
+      "f1_weighted": 0.3978667251912619,
+      "f1_macro": 0.3057062057585856,
+      "auc_high_or_critical": 0.6522443181818183
+    },
+    "recent_trend (continue last 3-window change)": {
+      "auc_high_or_critical": 0.39553267045454543
+    }
+  },
+  "ranking": {
+    "random (expected)": {
+      "precision_at_k": 0.3055555555555556,
+      "recall_at_k": 0.1,
+      "decay_captured": 0.1
+    },
+    "lowest current trust score": {
+      "precision_at_k": 0.03333333333333333,
+      "recall_at_k": 0.008552631578947369,
+      "decay_captured": 0.010419474024216965,
+      "k_per_window": 5,
+      "precision_at_k_ci95": [
+        0.0,
+        0.08333333333333333
+      ]
+    },
+    "steepest recent decline": {
+      "precision_at_k": 0.16666666666666666,
+      "recall_at_k": 0.05628140743272322,
+      "decay_captured": 0.04613458458262365,
+      "k_per_window": 5,
+      "precision_at_k_ci95": [
+        0.08333333333333333,
+        0.26666666666666666
+      ]
+    },
+    "most open vulnerabilities": {
+      "precision_at_k": 0.08333333333333333,
+      "recall_at_k": 0.027020202020202017,
+      "decay_captured": 0.034621294712131656,
+      "k_per_window": 5,
+      "precision_at_k_ci95": [
+        0.0,
+        0.16666666666666666
+      ]
+    },
+    "model: P(High or Critical)": {
+      "precision_at_k": 0.4333333333333333,
+      "recall_at_k": 0.1475885104174578,
+      "decay_captured": 0.16620869125689666,
+      "k_per_window": 5,
+      "precision_at_k_ci95": [
+        0.3166666666666667,
+        0.5333333333333333
+      ]
+    },
+    "model: rank score (with criticality, audit age)": {
+      "precision_at_k": 0.4666666666666668,
+      "recall_at_k": 0.15582714678109416,
+      "decay_captured": 0.1885314470433724,
+      "k_per_window": 5,
+      "precision_at_k_ci95": [
+        0.3333333333333333,
+        0.5833333333333334
+      ]
+    },
+    "dashboard display order (priority, then rank score)": {
+      "precision_at_k": 0.4333333333333334,
+      "recall_at_k": 0.14135955418850157,
+      "decay_captured": 0.16558991131728737,
+      "k_per_window": 5,
+      "precision_at_k_ci95": [
+        0.2833333333333334,
+        0.5666666666666667
+      ]
+    },
+    "_meta": {
+      "k_fraction": 0.1,
+      "k_per_window": 5,
+      "high_or_critical_base_rate": 0.3055555555555556,
+      "false_priority_rate_immediate_or_high": 0.47161572052401746,
+      "n_flagged": 229
+    }
+  },
+  "ablation": {
+    "node": {
+      "f1_macro": 0.3273158064102214,
+      "auc_high_or_critical": 0.6718465909090909,
+      "precision_at_k": 0.4166666666666667,
+      "n_features": 23
+    },
+    "node+temporal": {
+      "f1_macro": 0.3005875094827749,
+      "auc_high_or_critical": 0.6589488636363636,
+      "precision_at_k": 0.38333333333333347,
+      "n_features": 33
+    },
+    "node+temporal+graph": {
+      "f1_macro": 0.29024276142804784,
+      "auc_high_or_critical": 0.6815340909090909,
+      "precision_at_k": 0.4333333333333333,
+      "n_features": 45
+    }
+  },
+  "new_asset_holdout": {
+    "n_unseen_assets": 12,
+    "seen_assets": {
+      "f1_macro": 0.32297197821072776,
+      "auc_high_or_critical": 0.67327180828325
+    },
+    "unseen_assets": {
+      "f1_macro": 0.2914414718011238,
+      "auc_high_or_critical": 0.6962928851024637
+    }
+  },
+  "rolling_origin_cv": {
+    "folds": [
+      {
+        "f1_macro": 0.32368563277732454,
+        "auc_high_or_critical": 0.7186698717948719,
+        "accuracy": 0.5486111111111112,
+        "majority_accuracy": 0.5925925925925926
+      },
+      {
+        "f1_macro": 0.31368828720217184,
+        "auc_high_or_critical": 0.7655650119472709,
+        "accuracy": 0.5300925925925926,
+        "majority_accuracy": 0.5648148148148148
+      },
+      {
+        "f1_macro": 0.2914046420713192,
+        "auc_high_or_critical": 0.6393356700625675,
+        "accuracy": 0.5162037037037037,
+        "majority_accuracy": 0.625
+      },
+      {
+        "f1_macro": 0.29292220037942873,
+        "auc_high_or_critical": 0.6971668934801435,
+        "accuracy": 0.5046296296296297,
+        "majority_accuracy": 0.5254629629629629
+      }
+    ],
+    "mean_f1_macro": 0.30542519060756107,
+    "mean_auc_high_or_critical": 0.7051843618212135,
+    "mean_accuracy": 0.5248842592592593,
+    "mean_majority_accuracy": 0.5769675925925926,
+    "sd_f1_macro": 0.013735201668241265,
+    "sd_auc_high_or_critical": 0.04535419466218153
+  },
+  "graph_signal_control": {
+    "with_relationship_signal": {
+      "seeds": 3,
+      "auc_gain": {
+        "mean": 0.013166961814736164,
+        "sd": 0.010034351358493432
+      },
+      "f1_gain": {
+        "mean": -0.011319682055517108,
+        "sd": 0.01901361551029041
+      },
+      "precision_at_k_gain": {
+        "mean": 0.03333333333333329,
+        "sd": 0.036004114991154725
+      }
+    },
+    "control_no_relationship_signal": {
+      "seeds": 3,
+      "auc_gain": {
+        "mean": -0.004163955326831226,
+        "sd": 0.015256887130300387
+      },
+      "f1_gain": {
+        "mean": -0.0029531041427932427,
+        "sd": 0.0006635704443475843
+      },
+      "precision_at_k_gain": {
+        "mean": -0.005555555555555554,
+        "sd": 0.034246744460938776
+      }
+    }
+  },
+  "non_predictive_control": {
+    "label": "category of the change in trust over the PAST window (not forward-looking)",
+    "accuracy": 0.9903846153846154,
+    "f1_weighted": 0.9903112977395617,
+    "majority_class_accuracy": 0.6586538461538461
+  },
+  "feature_importance": {
+    "ts": 0.0628101682821743,
+    "ts_node": 0.061325387816353494,
+    "ts_lag1": 0.04263945489835312,
+    "ts_node_lag1": 0.042072266168983366,
+    "nbr_mean_ts_node": 0.04202609914970754,
+    "nbr_min_ts_node": 0.04174029957836185,
+    "ts_node_std5": 0.040685608505079414,
+    "sev_sum_open": 0.03930807096416802,
+    "patch_delay_mean": 0.034659995633803155,
+    "nbr_ts_drop": 0.03333314102303973,
+    "ts_lag3": 0.03321450073268194,
+    "ts_node_lag3": 0.03280956910565842,
+    "trend3": 0.03190364844759477,
+    "failed_auth_3": 0.03188230136733675,
+    "trend1": 0.03155897441160463,
+    "windows_since_audit": 0.0314666643601242,
+    "trend3_node": 0.031243767804934673,
+    "trend1_node": 0.029946945365062216,
+    "patch_delay_max": 0.025205679561793325,
+    "open_vulns": 0.02407651494773662,
+    "nbr_alerts_mean": 0.024014147402810715,
+    "alerts_3": 0.02373069524125583,
+    "failed_auth": 0.020944291550152615,
+    "nbr_open_crit_vulns": 0.019151627976352295,
+    "max_sev_open": 0.017218035556047256,
+    "new_vulns_3": 0.016365173869622177,
+    "criticality": 0.015103073615358523,
+    "unauth_changes_since_audit": 0.012703363066334952,
+    "backup_fail_5": 0.012395137143259379,
+    "security_alerts": 0.011449513427554382,
+    "degree": 0.010813830162636267,
+    "vulns_delta": 0.00917209430842604,
+    "high_risk_connections": 0.008103740631407891,
+    "config_changes": 0.007246206255302982,
+    "type_network_device": 0.006970423453866626,
+    "type_database": 0.006675637239453668,
+    "new_vulns": 0.00651504873098577,
+    "type_server": 0.006057139120972737,
+    "type_application": 0.005550044482666208,
+    "suspicious_access": 0.0054631885896042846,
+    "type_firewall": 0.0022288374846782372,
+    "windows_since_backup_ok": 0.002228579006912394,
+    "backup_failed": 0.0022035808684610883,
+    "compliance_violations": 0.0020180615289764085,
+    "priv_esc": 0.0017694711623497793
+  },
+  "disclosure_comparison": {
+    "disclosure_reported_accuracy": 0.8095,
+    "disclosure_test_records": 168,
+    "note": "The disclosure's 80.95% comes from its own simulated dataset and labelling. It is not comparable to the numbers here, which come from a different simulator with a strictly forward-looking label, and neither is evidence of real-world performance."
+  },
+  "seconds": 155.8
+}

@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Trust Decay{% endblock %}</title><link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}"></head>
+<body><header><b>🛡️ IS Trust Decay · Audit Intelligence</b>
+<nav><a href="/" class="{{ 'on' if request.path=='/' }}">Audit priorities</a><a href="/model" class="{{ 'on' if request.path=='/model' }}">Model &amp; evidence</a><a href="/repository" class="{{ 'on' if request.path=='/repository' }}">Repository</a></nav>
+<span class="ver">model {{ version }} · horizon {{ h }} day(s)</span></header><main>
+<div class="banner"><b>Prototype on simulated data.</b> The enterprise, its audit events and its trust scores are synthetic; nothing here reflects a real organisation.
+{% if metrics %}On held-out (test) windows the model reaches AUC {{ '%.2f' % metrics.test.auc_high_or_critical }} for spotting High/Critical decay, and its category accuracy ({{ '%.0f' % (metrics.test.accuracy*100) }}%) is
+{{ 'about the same as' if (metrics.test.accuracy - metrics.test.majority_class_accuracy)|abs < 0.03 else ('above' if metrics.test.accuracy > metrics.test.majority_class_accuracy else 'below') }}
+always predicting the most common class ({{ '%.0f' % (metrics.test.majority_class_accuracy*100) }}%). See <a href="/model">Model &amp; evidence</a> before relying on any prediction.{% endif %}</div>
+{% block body %}{% endblock %}</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const badge = (v, cls) => `<span class="badge b-${esc(cls || v)}">${esc(v)}</span>`;
+async function api(path, opts) { const r = await fetch(path, opts); const j = await r.json(); if (!r.ok) throw new Error(j.error ? (j.error.details ? j.error.details.map(d => d.message || d).join('; ') : j.error.message) : 'Request failed'); return j; }
+const T = (w) => 'T' + (w + 1);
+</script>
+{% block script %}{% endblock %}</body></html>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}Audit priorities{% endblock %}
+{% block body %}
+<div class="card"><h1>Audit Prioritization Dashboard</h1>
+<div class="row">
+ <div><label>Assessment window <input id="win" type="number" min="0" max="{{ latest }}" value="{{ latest }}"></label></div>
+ <div><label>Asset type <select id="fType"><option value="">All</option>{% for t in types %}<option>{{ t }}</option>{% endfor %}</select></label></div>
+ <div><label>Risk category <select id="fCat"><option value="">All</option>{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label></div>
+ <div><label>Audit priority <select id="fPri"><option value="">All</option>{% for c in priorities|reverse %}<option>{{ c }}</option>{% endfor %}</select></label></div>
+ <div style="flex:0"><button class="ghost" id="log">Run &amp; log</button></div></div>
+<div class="err" id="err"></div><div id="wmeta" class="muted"></div></div>
+<div class="card"><table id="tbl"><thead><tr><th>Asset</th><th>Type</th><th>Crit.</th><th class="num">Current trust</th><th class="num">Predicted future trust</th><th class="num">Predicted decay</th><th>Risk</th><th class="num">P(High+)</th><th>Trend</th><th>Primary risk factor (observed)</th><th>Audit priority</th></tr></thead><tbody></tbody></table>
+<p class="muted">Rows are ordered by audit priority, then by a rank score (predicted risk × asset criticality + audit staleness). Assets whose current trust is already very low (⚠) get a priority floor, since a decay forecast alone would ignore them. <b>Risk category</b> comes from the classifier; <b>predicted decay</b> from a separate regressor of future trust, which tends to predict smaller drops. Click an asset for its explanation, history and graph neighbourhood.</p></div>
+{% endblock %}
+{% block script %}<script>
+const cols = (r) => `<tr class="click" onclick="location='/asset/${encodeURIComponent(r.asset)}'"><td><b>${esc(r.asset)}</b></td><td>${esc(r.asset_type.replace('_', ' '))}</td><td class="num">${r.criticality}</td>
+ <td class="num">${r.current_ts}${r.already_degraded ? ' <span title="already severely degraded">⚠</span>' : ''}</td><td class="num">${r.pred_future_ts}</td><td class="num">${r.pred_decay}</td><td>${badge(r.category)}</td><td class="num">${(r.p_high_or_critical * 100).toFixed(0)}%</td>
+ <td>${esc(r.trend)}</td><td>${esc(r.primary_factor)}</td><td>${badge(r.priority)}</td></tr>`;
+async function load() {
+  $('err').textContent = '';
+  const q = new URLSearchParams({ window: $('win').value, explain: '0' }); for (const [k, id] of [['type', 'fType'], ['category', 'fCat'], ['priority', 'fPri']]) if ($(id).value) q.set(k, $(id).value);
+  try {
+    const r = await api('/api/assess?' + q);
+    $('wmeta').innerHTML = `Window ${T(r.window)} (${esc(r.window_start)}) ${badge(r.split, r.split)} · predicting trust change over the next ${r.horizon_windows} day(s) · showing ${r.assets.length} of ${r.total_assets} assets · graph snapshot <code>${esc(r.graph_snapshot.sha256)}</code>` +
+      (r.split === 'train' || r.split === 'validation' ? ' <span class="split-note">— this window was used to train/tune the model, so its predictions are in-sample and look better than they would on new data.</span>' : '');
+    document.querySelector('#tbl tbody').innerHTML = r.assets.map(cols).join('') || '<tr><td colspan="11" class="muted">No assets match.</td></tr>';
+  } catch (e) { $('err').textContent = e.message; }
+}
+['win', 'fType', 'fCat', 'fPri'].forEach(id => $(id).onchange = load);
+$('log').onclick = async () => { try { const r = await api('/api/assess', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ window: Number($('win').value) }) }); $('err').textContent = ''; $('wmeta').insertAdjacentHTML('beforeend', ` · logged as run #${r.run_id}`); } catch (e) { $('err').textContent = e.message; } };
+load();
+</script>{% endblock %}
