@@ -1,6 +1,6 @@
 numpy>=2.0
 pandas>=2.2
-scikit-learn>=1.5
+scikit-learn==1.8.0   # must match artifacts/model_bundle.joblib
 networkx>=3.3
 flask>=3.0
 joblib>=1.4

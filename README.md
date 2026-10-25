@@ -1,5 +1,7 @@
 # IS Trust Decay Prediction with a Temporal Knowledge Graph
 
+[![tests](https://github.com/Samvibhanshu/Trust-Decay-Prediction/actions/workflows/ci.yml/badge.svg)](https://github.com/Samvibhanshu/Trust-Decay-Prediction/actions/workflows/ci.yml)
+
 A runnable prototype of the VIT IPR disclosure *"AI-Driven Information System Trust Decay Prediction Using Temporal Knowledge
 Graphs for Continuous Audit Intelligence"* (TRL 4): audit events -> Temporal Knowledge Graph -> trust features -> Random Forest
 trust-decay prediction -> explainable audit prioritisation -> historical repository, with a web dashboard and JSON API.
